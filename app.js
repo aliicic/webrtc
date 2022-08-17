@@ -17,6 +17,7 @@ app.use(express.static("public"));
 let activeUsers = [];
 
 let senderStream;
+let senderStream2;
 
 io.on("connection", (socket) => {
 
@@ -38,8 +39,11 @@ io.on("connection", (socket) => {
 
     }
 
-    socket.on("send-stream", async (data) => {
-        // console.log(data.offer, 'send-stream')
+
+
+
+    socket.on("send-stream2", async (data) => {
+        console.log('send-stream2')
         const peer = new webrtc.RTCPeerConnection({
             iceServers: [
                 {
@@ -47,6 +51,70 @@ io.on("connection", (socket) => {
                 }
             ]
         });
+
+        peer.ontrack = (e) => handleTrackEvent2(e, peer);
+        const desc = new webrtc.RTCSessionDescription(data.sdp);
+        await peer.setRemoteDescription(desc);
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
+        const payload = {
+            sdp: peer.localDescription,
+        }
+        socket.emit('broad-casting2', payload)
+    });
+
+
+    socket.on("fetch-stream2", async (data) => {
+        console.log(senderStream2)
+        const peer = new webrtc.RTCPeerConnection({
+            iceServers: [
+                {
+                    urls: "stun:stun.stunprotocol.org"
+                }
+            ]
+        });
+        const desc = new webrtc.RTCSessionDescription(data.sdp);
+        await peer.setRemoteDescription(desc);
+        senderStream2.getTracks().forEach(track => peer.addTrack(track, senderStream2));
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
+        const payload = {
+            sdp: peer.localDescription
+        }
+
+        // res.json(payload);
+        socket.emit('broad-casting2', payload)
+    })
+
+
+    function handleTrackEvent2(e, peer) {
+        console.log('heyyyyy2')
+        senderStream2 = e.streams[0];
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+    socket.on("send-stream", async (data) => {
+        console.log('send-stream')
+
+        const peer = new webrtc.RTCPeerConnection({
+            iceServers: [
+                {
+                    urls: "stun:stun.stunprotocol.org"
+                }
+            ]
+        });
+
 
         peer.ontrack = (e) => handleTrackEvent(e, peer);
         const desc = new webrtc.RTCSessionDescription(data.sdp);
@@ -58,6 +126,7 @@ io.on("connection", (socket) => {
         }
         socket.emit('broad-casting', payload)
     });
+
 
     socket.on("fetch-stream", async (data) => {
         //console.log(senderStream)
@@ -81,13 +150,24 @@ io.on("connection", (socket) => {
         socket.emit('fetch-casting', payload)
     })
 
- 
-
 
     function handleTrackEvent(e, peer) {
-
+        console.log('heyyyyy1')
         senderStream = e.streams[0];
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     socket.on("make-answer", (data) => {

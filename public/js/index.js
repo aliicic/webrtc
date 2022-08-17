@@ -82,15 +82,19 @@ const logginBtn = document.getElementById('loggin')
 
 
 
+
+
+
+
 async function init() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     document.getElementById("local-video").srcObject = stream;
-    const peer = createPeer();
+    const peer = createPeerr();
     stream.getTracks().forEach(track => peer.addTrack(track, stream));
 }
 
 
-function createPeer() {
+function createPeerr() {
     const peer = new RTCPeerConnection({
         iceServers: [
             {
@@ -127,14 +131,64 @@ async function handleNegotiationNeededEvent(peer) {
 
 
 
+async function init2() {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    document.getElementById("local-video").srcObject = stream;
+
+    const peer = createPeerrr();
+
+    stream.getTracks().forEach(track => peer.addTrack(track, stream));
+}
 
 
-async function init1() {
-    const peer = createPeer1();
+function createPeerrr() {
+    console.log('create peer2 runed')
+    const peer = new RTCPeerConnection({
+        iceServers: [
+            {
+                urls: "stun:stun.stunprotocol.org"
+            }
+        ]
+    });
+    peer.onnegotiationneeded = () => handleNegotiationNeededEvent2(peer);
+
+    return peer;
+}
+
+async function handleNegotiationNeededEvent2(peer) {
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    const payload = {
+        sdp: peer.localDescription
+    };
+
+    // const { data } = await axios.post('/broadcast', payload);
+
+    socket.emit("send-stream2", payload);
+
+    socket.on('broad-casting2', async (data) => {
+
+        console.log(data.sdp)
+        const desc = new RTCSessionDescription(data.sdp);
+        peer.setRemoteDescription(desc).catch(e => console.log(e));
+
+    })
+
+
+}
+
+
+
+
+
+
+
+async function fetch() {
+    const peer = fetChcreatePeer();
     peer.addTransceiver("video", { direction: "recvonly" })
 }
 
-function createPeer1() {
+function fetChcreatePeer() {
     const peer = new RTCPeerConnection({
         iceServers: [
             {
@@ -143,12 +197,12 @@ function createPeer1() {
         ]
     });
     peer.ontrack = handleTrackEvent1;
-    peer.onnegotiationneeded = () => handleNegotiationNeededEvent1(peer);
+    peer.onnegotiationneeded = () => fetchHandleNegotiationNeededEvent(peer);
 
     return peer;
 }
 
-async function handleNegotiationNeededEvent1(peer) {
+async function fetchHandleNegotiationNeededEvent(peer) {
     const offer = await peer.createOffer();
     await peer.setLocalDescription(offer);
     const payload = {
@@ -173,16 +227,77 @@ function handleTrackEvent1(e) {
     document.getElementById("remote-video").srcObject = e.streams[0];
 };
 
+
+
+
+async function fetch2() {
+    const peer = fetchCreatePeer1();
+    peer.addTransceiver("video", { direction: "recvonly" })
+}
+
+function fetchCreatePeer1() {
+    const peer = new RTCPeerConnection({
+        iceServers: [
+            {
+                urls: "stun:stun.stunprotocol.org"
+            }
+        ]
+    });
+    peer.ontrack = handleTrackEvent2;
+    peer.onnegotiationneeded = () => fetchHandleNegotiationNeededEvent1(peer);
+
+    return peer;
+}
+
+async function fetchHandleNegotiationNeededEvent1(peer) {
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    const payload = {
+        sdp: peer.localDescription
+    };
+
+    //const { data } = await axios.post('/consumer', payload);
+
+    socket.emit("fetch-stream2", payload);
+
+    socket.on('broad-casting2', async (data) => {
+
+        const desc = new RTCSessionDescription(data.sdp);
+        peer.setRemoteDescription(desc).catch(e => console.log(e));
+
+    })
+
+
+}
+
+function handleTrackEvent2(e) {
+    document.getElementById("remote-video2").srcObject = e.streams[0];
+};
+
+
+
 logginBtn.addEventListener('click', () => {
+
+   // init2()
 
     if (user.value == 'admin') {
         init()
-    } else {
+    } else if (user.value == 'admin2') {
+        init2()
+    }
+    else {
+
 
         setTimeout(() => {
-            init1()
+
+            fetch()
 
         }, 4000)
+        setTimeout(() => {
+
+            fetch2()
+
+        }, 8000)
 
     }
 
