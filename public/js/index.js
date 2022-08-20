@@ -12,7 +12,7 @@ const fetchBtn = document.getElementById('fetch')
 
 let videoFetch1 = false,
     videoFetch2 = false
-
+let video1 = document.getElementById("remote-video")
 
 async function init() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -102,7 +102,7 @@ async function fetchHandleNegotiationNeededEvent(peer) {
 
 
         const desc = new RTCSessionDescription(data.sdp);
-        await peer.setRemoteDescription(desc).catch(e => console.log(e));
+        peer.setRemoteDescription(desc).catch(e => console.log(e));
 
 
 
@@ -116,7 +116,7 @@ async function handleTrackEvent1(e) {
 
     if (e.streams[0]) {
         console.log('run')
-        document.getElementById("remote-video").srcObject = await e.streams[0];
+        video1.srcObject = await e.streams[0];
 
     }
 
@@ -163,7 +163,7 @@ async function fetchHandleNegotiationNeededEvent1(peer) {
     socket.on('broad-casting22', async (data) => {
 
         const desc = new RTCSessionDescription(data.sdp);
-        await peer.setRemoteDescription(desc).catch(e => console.log(e));
+        peer.setRemoteDescription(desc).catch(e => console.log(e));
 
     })
 
@@ -200,7 +200,7 @@ logginBtn.addEventListener('click', () => {
 })
 fetchBtn.addEventListener('click', () => {
 
-  alert('button clicked')
+
 
     fetch()
     fetch2()
@@ -212,37 +212,44 @@ fetchBtn.addEventListener('click', () => {
 
 // if (videoFetch1) {
 //     console.log('videoFetch1')
-//     setTimeout(() => {
 
-//         fetch()
+document.addEventListener('DOMContentLoaded', (event) => {
 
-//     }, 4000)
+
+
+        fetch()
+        fetch2()
+
+
+});
+
+
+
 // }
 
 
-// if (videoFetch2) {
+// check3 = new Proxy({}, {
+//     set: function (target, property, value) {
+//         alert('heeey')
+//         // setTimeout(() => {
+//         //     fetch()
+//         // }, 4000)
+//         target[property] = value;
+//     }
+// });
 
-//     setTimeout(() => {
-
-//         fetch2()
-
-//     }, 4000)
-// }
 
 
-
-
+// check3.property = 100
 
 socket.on('broad-casting1', data => {
     videoFetch1 = true
-    // alert('admin logged in')
-    // console.log('hello client')
-    fetchBtn.click()
+
+    fetch()
+ 
 })
 socket.on('broad-casting2', data => {
-    videoFetch2 = true
-    console.log('hello client2')
-    setTimeout(() => {
+
         fetch2()
-    }, 4000);
+
 })

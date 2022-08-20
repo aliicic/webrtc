@@ -118,7 +118,6 @@ io.on("connection", (socket) => {
         }
         socket.emit('broad-casting-sender1', payload)
         socket.broadcast.emit('broad-casting1', payload)
-       
     });
 
 
