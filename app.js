@@ -8,7 +8,7 @@ const server = createServer(app);
 const io = new Server(server);
 
 const webrtc = require("wrtc");
-const { Console } = require("console");
+
 
 const port = process.env.PORT || 3000;
 
@@ -42,6 +42,7 @@ io.on("connection", (socket) => {
 
 
 
+
     socket.on("send-stream2", async (data) => {
         console.log('send-stream2')
         const peer = new webrtc.RTCPeerConnection({
@@ -60,7 +61,9 @@ io.on("connection", (socket) => {
         const payload = {
             sdp: peer.localDescription,
         }
-        socket.emit('broad-casting2', payload)
+        //io.emit('broad-casting2', payload)
+        socket.emit('broad-casting-sender2', payload)
+        socket.broadcast.emit('broad-casting2', payload)
     });
 
 
@@ -83,7 +86,7 @@ io.on("connection", (socket) => {
         }
 
         // res.json(payload);
-        socket.emit('broad-casting2', payload)
+        socket.emit('broad-casting22', payload)
     })
 
 
@@ -93,18 +96,7 @@ io.on("connection", (socket) => {
     };
 
 
-
-
-
-
-
-
-
-
-
-
-
-    socket.on("send-stream", async (data) => {
+    socket.on("send-stream1", async (data) => {
         console.log('send-stream')
 
         const peer = new webrtc.RTCPeerConnection({
@@ -124,7 +116,9 @@ io.on("connection", (socket) => {
         const payload = {
             sdp: peer.localDescription,
         }
-        socket.emit('broad-casting', payload)
+        socket.emit('broad-casting-sender1', payload)
+        socket.broadcast.emit('broad-casting1', payload)
+       
     });
 
 
@@ -151,14 +145,18 @@ io.on("connection", (socket) => {
     })
 
 
-    function handleTrackEvent(e, peer) {
+    async function handleTrackEvent(e, peer) {
         console.log('heyyyyy1')
-        senderStream = e.streams[0];
+        senderStream = await e.streams[0];
     };
 
 
 
+    // socket.on('joined' , ()=>{
 
+    //     socket.emit( 'suer-joind' )
+
+    // })
 
 
 

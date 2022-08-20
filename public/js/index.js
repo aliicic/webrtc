@@ -3,98 +3,27 @@ const socket = io("localhost:3000");
 let isAlreadyCalling = false;
 let getCalled = false;
 
-// const { RTCPeerConnection, RTCSessionDescription } = window;
 
-// const peerConnection = new RTCPeerConnection({
-//     iceServers: [
-//         {
-//             urls: "stun:stun.stunprotocol.org"
-//         }
-//     ]
-// });
-
-// async function callUser(socketId) {
-//     const offer = await peerConnection.createOffer();
-//     await peerConnection.setLocalDescription(offer);
-
-//     socket.emit("send-stream", {
-//         offer,
-//         to: socketId,
-//     });
-// }
-
-// callUser('oo oo oo')
-
-
-// async function fetch(socketId) {
-//     console.log('hey')
-//     const offer = await peerConnection.createOffer();
-//     await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
-
-//     socket.emit("fetch-stream", {
-//         offer,
-//         to: socketId,
-//     });
-// }
-// fetch('oo oo oo')
-
-// socket.on('broad-casting', async (data) => {
-
-//     await peerConnection.setRemoteDescription(
-//         new RTCSessionDescription(data.sdp)
-//     );
-
-//     navigator.getUserMedia(
-//         { video: true, audio: true },
-//         (stream) => {
-//             const localVideo = document.getElementById("local-video");
-
-//             if (localVideo) {
-//                 localVideo.srcObject = stream;
-//             }
-
-//             stream
-//                 .getTracks()
-//                 .forEach((track) => peerConnection.addTrack(track, stream));
-//         },
-//         (error) => {
-//             console.log(error.message);
-//         }
-//     );
-
-
-// })
-// socket.on('fetch-casting', async (data) => {
-//     console.log(data.sdp, 'fetch')
-
-//     await peerConnection.setRemoteDescription(
-//         new RTCSessionDescription(data.sdp)
-//     );
-
-//     // const answer = await peerConnection.createAnswer();
-
-//     // await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-
-// })
 
 const user = document.getElementById('username')
 const logginBtn = document.getElementById('loggin')
+const fetchBtn = document.getElementById('fetch')
 
 
-
-
-
+let videoFetch1 = false,
+    videoFetch2 = false
 
 
 async function init() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    console.log(stream, 'init')
     document.getElementById("local-video").srcObject = stream;
-    const peer = createPeerr();
+    const peer = createPeer();
     stream.getTracks().forEach(track => peer.addTrack(track, stream));
 }
 
 
-function createPeerr() {
+function createPeer() {
     const peer = new RTCPeerConnection({
         iceServers: [
             {
@@ -114,71 +43,27 @@ async function handleNegotiationNeededEvent(peer) {
         sdp: peer.localDescription
     };
 
-    // const { data } = await axios.post('/broadcast', payload);
+    let number = 1
+    if (user.value === 'admin') {
+        number = 1
+    }
+    if (user.value === 'admin2') {
+        number = 2
+    }
 
-    socket.emit("send-stream", payload);
+    socket.emit(`send-stream${number}`, payload);
 
-    socket.on('broad-casting', async (data) => {
-
-        console.log(data.sdp)
-        const desc = new RTCSessionDescription(data.sdp);
-        peer.setRemoteDescription(desc).catch(e => console.log(e));
-
-    })
-
-
-}
-
-
-
-async function init2() {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    document.getElementById("local-video").srcObject = stream;
-
-    const peer = createPeerrr();
-
-    stream.getTracks().forEach(track => peer.addTrack(track, stream));
-}
-
-
-function createPeerrr() {
-    console.log('create peer2 runed')
-    const peer = new RTCPeerConnection({
-        iceServers: [
-            {
-                urls: "stun:stun.stunprotocol.org"
-            }
-        ]
-    });
-    peer.onnegotiationneeded = () => handleNegotiationNeededEvent2(peer);
-
-    return peer;
-}
-
-async function handleNegotiationNeededEvent2(peer) {
-    const offer = await peer.createOffer();
-    await peer.setLocalDescription(offer);
-    const payload = {
-        sdp: peer.localDescription
-    };
-
-    // const { data } = await axios.post('/broadcast', payload);
-
-    socket.emit("send-stream2", payload);
-
-    socket.on('broad-casting2', async (data) => {
+    socket.on(`broad-casting-sender${number}`, async (data) => {
 
         console.log(data.sdp)
         const desc = new RTCSessionDescription(data.sdp);
         peer.setRemoteDescription(desc).catch(e => console.log(e));
 
+
     })
 
 
 }
-
-
-
 
 
 
@@ -215,16 +100,31 @@ async function fetchHandleNegotiationNeededEvent(peer) {
 
     socket.on('fetch-casting', async (data) => {
 
+
         const desc = new RTCSessionDescription(data.sdp);
-        peer.setRemoteDescription(desc).catch(e => console.log(e));
+        await peer.setRemoteDescription(desc).catch(e => console.log(e));
+
+
 
     })
 
 
 }
 
-function handleTrackEvent1(e) {
-    document.getElementById("remote-video").srcObject = e.streams[0];
+async function handleTrackEvent1(e) {
+    console.log(e.streams[0], 'fetch')
+
+    if (e.streams[0]) {
+        console.log('run')
+        document.getElementById("remote-video").srcObject = await e.streams[0];
+
+    }
+
+    // if (!document.getElementById("remote-video1").src) {
+    //     console.log('fetch run again')
+    //     fetch()
+    // }
+
 };
 
 
@@ -260,10 +160,10 @@ async function fetchHandleNegotiationNeededEvent1(peer) {
 
     socket.emit("fetch-stream2", payload);
 
-    socket.on('broad-casting2', async (data) => {
+    socket.on('broad-casting22', async (data) => {
 
         const desc = new RTCSessionDescription(data.sdp);
-        peer.setRemoteDescription(desc).catch(e => console.log(e));
+        await peer.setRemoteDescription(desc).catch(e => console.log(e));
 
     })
 
@@ -272,45 +172,77 @@ async function fetchHandleNegotiationNeededEvent1(peer) {
 
 function handleTrackEvent2(e) {
     document.getElementById("remote-video2").srcObject = e.streams[0];
+
 };
 
+
+// socket.on('user-joied', (data) => {
+
+
+//     setTimeout(() => {
+
+//         fetch()
+
+//     }, 4000)
+//     setTimeout(() => {
+
+//         fetch2()
+
+//     }, 8000)
+
+// })
 
 
 logginBtn.addEventListener('click', () => {
 
-   // init2()
+    init()
 
-    if (user.value == 'admin') {
-        init()
-    } else if (user.value == 'admin2') {
-        init2()
-    }
-    else {
+})
+fetchBtn.addEventListener('click', () => {
 
+  alert('button clicked')
 
-        setTimeout(() => {
-
-            fetch()
-
-        }, 4000)
-        setTimeout(() => {
-
-            fetch2()
-
-        }, 8000)
-
-    }
+    fetch()
+    fetch2()
 
 })
 
 
 
 
+// if (videoFetch1) {
+//     console.log('videoFetch1')
+//     setTimeout(() => {
 
-// peerConnection.ontrack = function ({ streams: [stream] }) {
-//     const remoteVideo = document.getElementById("remote-video");
+//         fetch()
 
-//     if (remoteVideo) {
-//         remoteVideo.srcObject = stream;
-//     }
-// };
+//     }, 4000)
+// }
+
+
+// if (videoFetch2) {
+
+//     setTimeout(() => {
+
+//         fetch2()
+
+//     }, 4000)
+// }
+
+
+
+
+
+socket.on('broad-casting1', data => {
+    videoFetch1 = true
+    // alert('admin logged in')
+    // console.log('hello client')
+    fetchBtn.click()
+})
+socket.on('broad-casting2', data => {
+    videoFetch2 = true
+    console.log('hello client2')
+    setTimeout(() => {
+        fetch2()
+    }, 4000);
+})
