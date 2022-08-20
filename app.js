@@ -21,6 +21,7 @@ let senderStream2;
 
 io.on("connection", (socket) => {
 
+
     const socketExist = activeUsers.find(
         (socketExist) => socketExist === socket.id
     );
@@ -40,6 +41,14 @@ io.on("connection", (socket) => {
     }
 
 
+    socket.on("disconnect", (data) => {
+
+        console.log(data.user)
+
+        socket.broadcast.emit('broad-casting1')
+        socket.broadcast.emit('broad-casting2')
+
+    })
 
 
 
@@ -63,7 +72,7 @@ io.on("connection", (socket) => {
         }
         //io.emit('broad-casting2', payload)
         socket.emit('broad-casting-sender2', payload)
-        socket.broadcast.emit('broad-casting2', payload)
+        socket.broadcast.emit('broad-casting2')
     });
 
 
@@ -117,7 +126,7 @@ io.on("connection", (socket) => {
             sdp: peer.localDescription,
         }
         socket.emit('broad-casting-sender1', payload)
-        socket.broadcast.emit('broad-casting1', payload)
+        socket.broadcast.emit('broad-casting1')
     });
 
 
@@ -180,15 +189,15 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on("disconnect", () => {
-        activeUsers = activeUsers.filter(
-            (socketExist) => socketExist !== socket.id
-        );
+    // socket.on("disconnect", () => {
+    //     activeUsers = activeUsers.filter(
+    //         (socketExist) => socketExist !== socket.id
+    //     );
 
-        socket.broadcast.emit("remove-user", {
-            socketId: socket.id,
-        });
-    });
+    //     socket.broadcast.emit("remove-user", {
+    //         socketId: socket.id,
+    //     });
+    // });
 });
 
 

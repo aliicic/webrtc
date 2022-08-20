@@ -217,8 +217,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 
 
-        fetch()
-        fetch2()
+    fetch()
+    fetch2()
 
 
 });
@@ -238,18 +238,27 @@ document.addEventListener('DOMContentLoaded', (event) => {
 //     }
 // });
 
-
+socket.emit('disconnect', {
+    user: user.value
+})
 
 // check3.property = 100
 
 socket.on('broad-casting1', data => {
     videoFetch1 = true
 
-    fetch()
- 
+    setTimeout(() => {
+
+        fetch()
+    })
+
 })
 socket.on('broad-casting2', data => {
 
+    setTimeout(() => {
+
         fetch2()
+    })
+
 
 })
