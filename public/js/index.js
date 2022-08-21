@@ -10,12 +10,10 @@ const logginBtn = document.getElementById('loggin')
 const fetchBtn = document.getElementById('fetch')
 
 
-let videoFetch1 = false,
-    videoFetch2 = false
 let video1 = document.getElementById("remote-video")
 
 async function init() {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     console.log(stream, 'init')
     document.getElementById("local-video").srcObject = stream;
     const peer = createPeer();
@@ -70,6 +68,7 @@ async function handleNegotiationNeededEvent(peer) {
 
 async function fetch() {
     const peer = fetChcreatePeer();
+    peer.addTransceiver("audio")
     peer.addTransceiver("video", { direction: "recvonly" })
 }
 
@@ -200,8 +199,6 @@ logginBtn.addEventListener('click', () => {
 })
 fetchBtn.addEventListener('click', () => {
 
-
-
     fetch()
     fetch2()
 
@@ -238,9 +235,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
 //     }
 // });
 
-socket.emit('disconnect', {
-    user: user.value
-})
+// socket.emit('disconnect', {
+//     user: user.value
+// })
 
 // check3.property = 100
 
