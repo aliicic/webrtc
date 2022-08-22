@@ -53,11 +53,13 @@ io.on("connection", (socket) => {
     })
 
     socket.on("disconnect", (data) => {
-        console.log(socket.id , 'disconnected');
+        console.log(socket.id, 'disconnected');
+        console.log(activeUsers)
         activeUsers.map((item , index) => {
             if (item.id === socket.id) activeUsers.splice(index,1)
-          })
-         io.sockets.emit("online", activeUsers);
+        })
+          console.log(activeUsers);
+         io.sockets.emit("online-users", activeUsers);
 
     console.log(data.user);
 

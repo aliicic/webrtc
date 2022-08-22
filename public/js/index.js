@@ -48,10 +48,11 @@ async function handleNegotiationNeededEvent(peer) {
     };
 
     let number = 1
-    if (nickname === 'admin') {
+    if (nickname == 'admin') {
         number = 1
     }
-    if (nickname === "admin2") {
+    if (nickname != "admin") {
+        alert('heey it workssss')
       number = 2;
     }
 
@@ -213,7 +214,7 @@ socket.on("online-users", (data) => {
         li = document.createElement("li");
         li.innerHTML = item.data
         li.addEventListener('click', () => {
-
+            if(nickname!='admin') return
             let payload = {
                 name: item.data,
                 id : item.id
@@ -228,16 +229,21 @@ socket.on("online-users", (data) => {
 });
 
 socket.on("choosed-to-call", (data) => {
-  alert("heeyyy you are choosed");
+   confirm('َدرخواست شما پذیرفته شد شروع به صحبت میکنید؟')
+    
+    if (confirm) {
+          init();
+    }
+
 });
 
-if (nickname == "admin" || nickname == "admin2") {
+if (nickname == "admin") {
    logginBtn.disabled = false
 }
 
 logginBtn.addEventListener("click", () => {
 
-    if (nickname == "admin" || nickname == "admin2") {
+    if (nickname == "admin") {
       init();
     }
   });
