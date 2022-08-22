@@ -15,8 +15,9 @@ app.use(express.static("public"));
 
 let activeUsers = [];
 
-let senderStream;
-let senderStream2;
+//? these flags check if no one doesnt stream video , prevent fetch stream fire
+let senderStream  = false,
+    senderStream2 = false
 
 io.on("connection", (socket) => {
 
@@ -68,7 +69,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send-stream2", async (data) => {
-    console.log("send-stream2");
+      console.log("send-stream2");
+      senderStream2 = true
     const peer = new webrtc.RTCPeerConnection({
       iceServers: [
         {
@@ -91,27 +93,30 @@ io.on("connection", (socket) => {
   });
 
   socket.on("fetch-stream2", async (data) => {
-    console.log(senderStream2);
-    const peer = new webrtc.RTCPeerConnection({
-      iceServers: [
-        {
-          urls: "stun:stun.stunprotocol.org",
-        },
-      ],
-    });
-    const desc = new webrtc.RTCSessionDescription(data.sdp);
-    await peer.setRemoteDescription(desc);
-    senderStream2
-      .getTracks()
-      .forEach((track) => peer.addTrack(track, senderStream2));
-    const answer = await peer.createAnswer();
-    await peer.setLocalDescription(answer);
-    const payload = {
-      sdp: peer.localDescription,
-    };
+      //? check if no one doesnt stream video , prevent fetch stream fire
+      if (senderStream2) {
+        console.log(senderStream2);
+        const peer = new webrtc.RTCPeerConnection({
+          iceServers: [
+            {
+              urls: "stun:stun.stunprotocol.org",
+            },
+          ],
+        });
+        const desc = new webrtc.RTCSessionDescription(data.sdp);
+        await peer.setRemoteDescription(desc);
+        senderStream2
+          .getTracks()
+          .forEach((track) => peer.addTrack(track, senderStream2));
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
+        const payload = {
+          sdp: peer.localDescription,
+        };
 
-    // res.json(payload);
-    socket.emit("broad-casting22", payload);
+        // res.json(payload);
+        socket.emit("broad-casting22", payload);
+      }
   });
 
   function handleTrackEvent2(e, peer) {
@@ -121,7 +126,7 @@ io.on("connection", (socket) => {
 
   socket.on("send-stream1", async (data) => {
     console.log("send-stream");
-
+     senderStream = true;
     const peer = new webrtc.RTCPeerConnection({
       iceServers: [
         {
@@ -143,27 +148,29 @@ io.on("connection", (socket) => {
   });
 
   socket.on("fetch-stream", async (data) => {
-    //console.log(senderStream)
-    const peer = new webrtc.RTCPeerConnection({
-      iceServers: [
-        {
-          urls: "stun:stun.stunprotocol.org",
-        },
-      ],
-    });
-    const desc = new webrtc.RTCSessionDescription(data.sdp);
-    await peer.setRemoteDescription(desc);
-    senderStream
-      .getTracks()
-      .forEach((track) => peer.addTrack(track, senderStream));
-    const answer = await peer.createAnswer();
-    await peer.setLocalDescription(answer);
-    const payload = {
-      sdp: peer.localDescription,
-    };
+    //? check if no one doesnt stream video , prevent fetch stream fire
+    if (senderStream) {
+      const peer = new webrtc.RTCPeerConnection({
+        iceServers: [
+          {
+            urls: "stun:stun.stunprotocol.org",
+          },
+        ],
+      });
+      const desc = new webrtc.RTCSessionDescription(data.sdp);
+      await peer.setRemoteDescription(desc);
+      senderStream
+        .getTracks()
+        .forEach((track) => peer.addTrack(track, senderStream));
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+      const payload = {
+        sdp: peer.localDescription,
+      };
 
-    // res.json(payload);
-    socket.emit("fetch-casting", payload);
+      // res.json(payload);
+      socket.emit("fetch-casting", payload);
+    }
   });
 
   async function handleTrackEvent(e, peer) {

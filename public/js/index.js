@@ -262,13 +262,10 @@ fetchBtn.addEventListener('click', () => {
 //     console.log('videoFetch1')
 
 document.addEventListener('DOMContentLoaded', (event) => {
-
-
-
-    fetch()
-    fetch2()
-
-
+  //? sender stream 1 and 2 flags in app.js(server side) check check if no one doesn't stream video , prevent fetch stream fire
+  //? if delete flags and their condition in server side ... we would have some errors is server side but app works anyway
+  fetch();
+  fetch2();
 });
 
 
