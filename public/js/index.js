@@ -5,6 +5,12 @@ let getCalled = false;
 
 
 
+
+
+
+
+
+
 const user = document.getElementById('username')
 const logginBtn = document.getElementById('loggin')
 const fetchBtn = document.getElementById('fetch')
@@ -42,11 +48,11 @@ async function handleNegotiationNeededEvent(peer) {
     };
 
     let number = 1
-    if (user.value === 'admin') {
+    if (nickname === 'admin') {
         number = 1
     }
-    if (user.value === 'admin2') {
-        number = 2
+    if (nickname === "admin2") {
+      number = 2;
     }
 
     socket.emit(`send-stream${number}`, payload);
@@ -191,12 +197,51 @@ function handleTrackEvent2(e) {
 
 // })
 
+const nickname = localStorage.getItem("nickname");
 
-logginBtn.addEventListener('click', () => {
+socket.emit("login", nickname ); 
 
-    init()
+socket.on("online-users", (data) => {
+   // console.log(data);
+    
+    let li;
+    const ul = document.getElementById('active-users-list')
+    ul.innerHTML = ""
+    data.map((item) => {
+      
+        console.log(item);
+        li = document.createElement("li");
+        li.innerHTML = item.data
+        li.addEventListener('click', () => {
 
-})
+            let payload = {
+                name: item.data,
+                id : item.id
+        }   
+            socket.emit('choose-user', payload)
+
+        })
+        ul.appendChild(li)
+    })
+
+    
+});
+
+socket.on("choosed-to-call", (data) => {
+  alert("heeyyy you are choosed");
+});
+
+if (nickname == "admin" || nickname == "admin2") {
+   logginBtn.disabled = false
+}
+
+logginBtn.addEventListener("click", () => {
+
+    if (nickname == "admin" || nickname == "admin2") {
+      init();
+    }
+  });
+
 fetchBtn.addEventListener('click', () => {
 
     fetch()
