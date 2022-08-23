@@ -74,7 +74,7 @@ io.on("connection", (socket) => {
     const peer = new webrtc.RTCPeerConnection({
       iceServers: [
         {
-          urls: "stun:stun.stunprotocol.org",
+          urls: "stun:stun.l.google.com:19302",
         },
       ],
     });
@@ -92,6 +92,11 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("broad-casting2");
   });
 
+  // socket.on("kill-stream", () => {
+  //   console.log('kill')
+  //   senderStream2.getTracks().forEach((track) => track.stop());
+  // })
+
   socket.on("fetch-stream2", async (data) => {
       //? check if no one doesnt stream video , prevent fetch stream fire
       if (senderStream2) {
@@ -99,7 +104,7 @@ io.on("connection", (socket) => {
         const peer = new webrtc.RTCPeerConnection({
           iceServers: [
             {
-              urls: "stun:stun.stunprotocol.org",
+              urls: "stun:stun.l.google.com:19302",
             },
           ],
         });
@@ -130,7 +135,7 @@ io.on("connection", (socket) => {
     const peer = new webrtc.RTCPeerConnection({
       iceServers: [
         {
-          urls: "stun:stun.stunprotocol.org",
+          urls: "stun:stun.l.google.com:19302",
         },
       ],
     });
@@ -153,7 +158,7 @@ io.on("connection", (socket) => {
       const peer = new webrtc.RTCPeerConnection({
         iceServers: [
           {
-            urls: "stun:stun.stunprotocol.org",
+            urls: "stun:stun.l.google.com:19302",
           },
         ],
       });
