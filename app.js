@@ -16,51 +16,49 @@ app.use(express.static("public"));
 let activeUsers = [];
 
 //? these flags check if no one doesnt stream video , prevent fetch stream fire
-let senderStream  = false,
-    senderStream2 = false
+let senderStream = false,
+  senderStream2 = false;
 
 io.on("connection", (socket) => {
-
-    socket.on("login", (data) => {
+  socket.on("login", (data) => {
     //activeUsers[socket.id] = data;
     //console.log(socket.id)
-      activeUsers.push({
-         data , id :  socket.id
-     })
-      
+    activeUsers.push({
+      data,
+      id: socket.id,
+    });
 
     //console.log(activeUsers);
     io.emit("online-users", activeUsers);
   });
 
-//   const socketExist = activeUsers.find(
-//     (socketExist) => socketExist === socket.id
-//   );
+  //   const socketExist = activeUsers.find(
+  //     (socketExist) => socketExist === socket.id
+  //   );
 
-//   if (!socketExist) {
-//     activeUsers.push(socket.id);
+  //   if (!socketExist) {
+  //     activeUsers.push(socket.id);
 
-//     socket.emit("update-user-list", {
-//       users: activeUsers.filter((socketExist) => socketExist !== socket.id),
-//     });
+  //     socket.emit("update-user-list", {
+  //       users: activeUsers.filter((socketExist) => socketExist !== socket.id),
+  //     });
 
-//     socket.broadcast.emit("update-user-list", { users: [socket.id] });
-//   }
-    
-    socket.on('choose-user', data => {
-        console.log(data)
-        io.to(data.id).emit('choosed-to-call')
-     
-    })
+  //     socket.broadcast.emit("update-user-list", { users: [socket.id] });
+  //   }
 
-    socket.on("disconnect", (data) => {
-        console.log(socket.id, 'disconnected');
-        console.log(activeUsers)
-        activeUsers.map((item , index) => {
-            if (item.id === socket.id) activeUsers.splice(index,1)
-        })
-          console.log(activeUsers);
-         io.sockets.emit("online-users", activeUsers);
+  socket.on("choose-user", (data) => {
+    console.log(data);
+    io.to(data.id).emit("choosed-to-call");
+  });
+
+  socket.on("disconnect", (data) => {
+    console.log(socket.id, "disconnected");
+    console.log(activeUsers);
+    activeUsers.map((item, index) => {
+      if (item.id === socket.id) activeUsers.splice(index, 1);
+    });
+    console.log(activeUsers);
+    io.sockets.emit("online-users", activeUsers);
 
     console.log(data.user);
 
@@ -69,12 +67,27 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send-stream2", async (data) => {
-      console.log("send-stream2");
-      senderStream2 = true
+    console.log("send-stream2");
+    senderStream2 = true;
     const peer = new webrtc.RTCPeerConnection({
       iceServers: [
         {
-          urls: "stun:stun.l.google.com:19302",
+          urls: "stun:openrelay.metered.ca:80",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443?transport=tcp",
+          username: "openrelayproject",
+          credential: "openrelayproject",
         },
       ],
     });
@@ -92,36 +105,49 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("broad-casting2");
   });
 
-  // socket.on("kill-stream", () => {
-  //   console.log('kill')
-  //   senderStream2.getTracks().forEach((track) => track.stop());
-  // })
-
   socket.on("fetch-stream2", async (data) => {
-      //? check if no one doesnt stream video , prevent fetch stream fire
-      if (senderStream2) {
-        console.log(senderStream2);
-        const peer = new webrtc.RTCPeerConnection({
-          iceServers: [
-            {
-              urls: "stun:stun.l.google.com:19302",
-            },
-          ],
-        });
-        const desc = new webrtc.RTCSessionDescription(data.sdp);
-        await peer.setRemoteDescription(desc);
-        senderStream2
-          .getTracks()
-          .forEach((track) => peer.addTrack(track, senderStream2));
-        const answer = await peer.createAnswer();
-        await peer.setLocalDescription(answer);
-        const payload = {
-          sdp: peer.localDescription,
-        };
+    //? check if no one doesnt stream video , prevent fetch stream fire
+    if (senderStream2) {
+      console.log(senderStream2);
+      const peer = new webrtc.RTCPeerConnection({
+        iceServers: [
+          {
+            urls: "stun:openrelay.metered.ca:80",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+        ],
+      });
+      const desc = new webrtc.RTCSessionDescription(data.sdp);
+      await peer.setRemoteDescription(desc);
+      senderStream2
+        .getTracks()
+        .forEach((track) => peer.addTrack(track, senderStream2));
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+      
+      const payload = {
+        sdp: peer.localDescription,
+        ice: data.ice,
+      };
 
-        // res.json(payload);
-        socket.emit("broad-casting22", payload);
-      }
+      // res.json(payload);
+      socket.emit("broad-casting22", payload);
+         socket.emit("fetch-ice2", data.ice);
+    }
   });
 
   function handleTrackEvent2(e, peer) {
@@ -130,12 +156,28 @@ io.on("connection", (socket) => {
   }
 
   socket.on("send-stream1", async (data) => {
-    console.log("send-stream");
-     senderStream = true;
+    console.log(data.ice, "send-stream");
+
+    senderStream = true;
     const peer = new webrtc.RTCPeerConnection({
       iceServers: [
         {
-          urls: "stun:stun.l.google.com:19302",
+          urls: "stun:openrelay.metered.ca:80",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443?transport=tcp",
+          username: "openrelayproject",
+          credential: "openrelayproject",
         },
       ],
     });
@@ -145,6 +187,7 @@ io.on("connection", (socket) => {
     await peer.setRemoteDescription(desc);
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
+    peer.addIceCandidate(data.ice);
     const payload = {
       sdp: peer.localDescription,
     };
@@ -158,7 +201,22 @@ io.on("connection", (socket) => {
       const peer = new webrtc.RTCPeerConnection({
         iceServers: [
           {
-            urls: "stun:stun.l.google.com:19302",
+            urls: "stun:openrelay.metered.ca:80",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
           },
         ],
       });
@@ -169,12 +227,15 @@ io.on("connection", (socket) => {
         .forEach((track) => peer.addTrack(track, senderStream));
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
+     
       const payload = {
         sdp: peer.localDescription,
+        ice : data.ice
       };
 
       // res.json(payload);
       socket.emit("fetch-casting", payload);
+      socket.emit("fetch-ice", data.ice);
     }
   });
 

@@ -27,10 +27,32 @@ function createPeer() {
   const peer = new RTCPeerConnection({
     iceServers: [
       {
-        urls: "stun:stun.l.google.com:19302",
+        urls: "stun:openrelay.metered.ca:80",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
       },
     ],
   });
+  //  peer.onicecandidate = async (event) => {
+  //      console.log("new ICE candidate", event.candidate);
+  //      socket.emit(`send-stream${number}`, {
+  //          type: "candidate",
+  //          'candidate': event.candidate,
+  //      });
+  //        };
   peer.onnegotiationneeded = () => handleNegotiationNeededEvent(peer);
 
   return peer;
@@ -38,11 +60,19 @@ function createPeer() {
 
 async function handleNegotiationNeededEvent(peer) {
   const offer = await peer.createOffer();
+
+  console.log(offer, "this is offer");
   await peer.setLocalDescription(offer);
-  const payload = {
-    sdp: peer.localDescription,
+  let ice;
+  peer.onicecandidate = async (event) => {
+    ice = await event.candidate;
+    console.log(ice);
   };
 
+  let payload = {
+    sdp: peer.localDescription,
+    ice,
+  };
   let number = 1;
   if (nickname == "admin") {
     number = 1;
@@ -52,7 +82,10 @@ async function handleNegotiationNeededEvent(peer) {
     number = 2;
   }
 
-  socket.emit(`send-stream${number}`, payload);
+  setTimeout(() => {
+    payload.ice = ice;
+    socket.emit(`send-stream${number}`, payload);
+  }, 5000);
 
   socket.on(`broad-casting-sender${number}`, async (data) => {
     console.log(data.sdp);
@@ -71,11 +104,29 @@ function fetChcreatePeer() {
   const peer = new RTCPeerConnection({
     iceServers: [
       {
-        urls: "stun:stun.l.google.com:19302",
+        urls: "stun:openrelay.metered.ca:80",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
       },
     ],
   });
   peer.ontrack = handleTrackEvent1;
+  // peer.onicecandidate = async (event) => {
+  //     console.log("new ICE candidate" , event.candidate)
+  // }
   peer.onnegotiationneeded = () => fetchHandleNegotiationNeededEvent(peer);
 
   return peer;
@@ -84,18 +135,33 @@ function fetChcreatePeer() {
 async function fetchHandleNegotiationNeededEvent(peer) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
-  const payload = {
+
+  let ice;
+  peer.onicecandidate = async (event) => {
+    ice = await event.candidate;
+    console.log(ice);
+  };
+
+  let payload = {
     sdp: peer.localDescription,
+    ice,
   };
 
   //const { data } = await axios.post('/consumer', payload);
 
-  socket.emit("fetch-stream", payload);
+  setTimeout(() => {
+    payload.ice = ice;
+    socket.emit("fetch-stream", payload);
+  }, 5000);
 
   socket.on("fetch-casting", async (data) => {
-    const desc = new RTCSessionDescription(data.sdp);
+      const desc = new RTCSessionDescription(data.sdp);
+     
     peer.setRemoteDescription(desc).catch((e) => console.log(e));
   });
+ socket.on("fetch-ice", data => {
+     peer.addIceCandidate(data);
+})
 }
 
 async function handleTrackEvent1(e) {
@@ -121,7 +187,22 @@ function fetchCreatePeer1() {
   const peer = new RTCPeerConnection({
     iceServers: [
       {
-        urls: "stun:stun.l.google.com:19302",
+        urls: "stun:openrelay.metered.ca:80",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
       },
     ],
   });
@@ -134,18 +215,33 @@ function fetchCreatePeer1() {
 async function fetchHandleNegotiationNeededEvent1(peer) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
-  const payload = {
+
+  let ice;
+  peer.onicecandidate = async (event) => {
+    ice = await event.candidate;
+    console.log(ice);
+  };
+
+  let payload = {
     sdp: peer.localDescription,
+    ice,
   };
 
   //const { data } = await axios.post('/consumer', payload);
 
-  socket.emit("fetch-stream2", payload);
+  setTimeout(() => {
+    payload.ice = ice;
+    socket.emit("fetch-stream2", payload);
+  }, 5000);
 
-  socket.on("broad-casting22", async (data) => {
+    socket.on("broad-casting22", async (data) => {
+  
     const desc = new RTCSessionDescription(data.sdp);
     peer.setRemoteDescription(desc).catch((e) => console.log(e));
-  });
+    });
+     socket.on("fetch-ice2", (data) => {
+       peer.addIceCandidate(data);
+     });
 }
 
 function handleTrackEvent2(e) {
