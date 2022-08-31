@@ -66,9 +66,11 @@ function createPeer() {
 // Create a server for handling websocket calls
 // const wss = new WebSocketServer({ server: webServer });
 
-io.on("connection", (socket) =>{
+io.on("connection", (socket) => {
+  //? must make to diffrent id in client and server , if use socket.id insted of uuidv4  we have same id in client and server and it is wrong
   let peerId = uuidv4();
   socket.id = peerId;
+  console.log(socket.id);
   socket.on("disconnect", (event) => {
     peers.delete(socket.id);
     consumers.delete(socket.id);
@@ -87,14 +89,14 @@ io.on("connection", (socket) =>{
     );
   });
 
-  socket.emit("message", { type: "welcome", id: peerId });
+  socket.emit("message", { type: "welcome", id: socket.id });
 
   socket.on('login', data => {
       activeUsers.push({
-        name: data,
-        id: socket.id,
+        name: data.name,
+        id: data.id,
       });
-    socket.broadcast.emit("userList", activeUsers);
+    io.emit("userList", activeUsers);
   })
 
   socket.on("choose-user", (data) => {

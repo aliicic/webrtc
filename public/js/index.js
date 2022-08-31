@@ -84,7 +84,7 @@
 //     const desc = new RTCSessionDescription(data.sdp);
 //     peer.setRemoteDescription(desc).catch((e) => console.log(e , 'this is a message from setttremoot'));
 //     peer.addIceCandidate(data.ice);
-    
+
 //   });
 // }
 
@@ -368,7 +368,7 @@ let WS_PORT = 3000;
 let username = document.querySelector("#username");
 let connectBtn = document.querySelector("#connect");
 let remoteContainer = document.querySelector("#remote_videos");
-let userList = document.getElementById("user-list")
+let userList = document.getElementById("user-list");
 connectBtn.addEventListener("click", connect);
 
 let localUUID = null;
@@ -381,7 +381,6 @@ const socket = io("localhost:3000", {
   rejectUnauthorized: false,
 });
 
-
 // const socket = io("localhost:3000");
 
 const nickname = localStorage.getItem("nickname");
@@ -393,12 +392,11 @@ window.onload = () => {
 async function init() {
   console.log("window loaded");
 
-
-
   socket.on("connect", (e) => {
     console.log("socket connected");
-    connectBtn.disabled = false 
-    socket.emit("login", nickname);
+     console.log( socket.id , 'socket');
+    connectBtn.disabled = false;
+    socket.emit("login", {name :nickname , id : socket.id});
   });
   socket.on("disconnect", (e) => {
     console.log("socket desconnected");
@@ -409,26 +407,24 @@ async function init() {
     handleMessage(e);
   });
   let liUser;
-  socket.on("userList", data => {
+  socket.on("userList", (data) => {
     userList.innerHTML = "";
     data.map((item) => {
-      liUser = document.createElement('li')
-      liUser.innerHTML = item.name
+      liUser = document.createElement("li");
+      liUser.innerHTML = item.name;
       liUser.addEventListener("click", () => {
-      if (nickname != "admin") return;
-      let payload = {
-        name: item.name,
-        id: item.id,
-      };
+        if (nickname != "admin") return;
+        let payload = {
+          name: item.name,
+          id: item.id,
+        };
         socket.emit("choose-user", payload);
-          });
-      userList.appendChild(liUser)
-    })
+      });
+      userList.appendChild(liUser);
+    });
 
     console.log(data);
-
-  })
-
+  });
 }
 
 function recalculateLayout() {
@@ -489,7 +485,7 @@ async function handleIceCandidate({ candidate }) {
       ice: candidate,
       uqid: localUUID,
     };
-    socket.emit("message" ,payload);
+    socket.emit("message", payload);
   }
 }
 
@@ -522,6 +518,8 @@ function handleConsume({ sdp, id, consumerId }) {
 
 async function createConsumeTransport(peer) {
   let consumerId = uuidv4();
+  console.log(peer.id, "peer id");
+  console.log(consumerId, "peer id");
   let consumerTransport = new RTCPeerConnection(configuration);
   clients.get(peer.id).consumerId = consumerId;
   consumerTransport.id = consumerId;
@@ -614,32 +612,29 @@ function removeUser({ id }) {
 
   recalculateLayout();
 }
-socket.on("choosed-to-call",async (data) => {
-    alert('heyyyy')
-    let constraint = {
-      audio: true,
-      video: {
-        mandatory: {
-          width: { min: 320 },
-          height: { min: 180 },
-        },
-        optional: [
-          { width: { max: 1280 } },
-          { frameRate: 30 },
-          { facingMode: "user" },
-        ],
+socket.on("choosed-to-call", async (data) => {
+  // alert('heyyyy')
+  let constraint = {
+    audio: true,
+    video: {
+      mandatory: {
+        width: { min: 320 },
+        height: { min: 180 },
       },
-    };
-    let stream = await navigator.mediaDevices.getUserMedia(constraint);
-    handleRemoteTrack(stream, username.value);
-    localStream = stream;
+      optional: [
+        { width: { max: 1280 } },
+        { frameRate: 30 },
+        { facingMode: "user" },
+      ],
+    },
+  };
+  let stream = await navigator.mediaDevices.getUserMedia(constraint);
+  handleRemoteTrack(stream, username.value);
+  localStream = stream;
 
-    peer = createPeer();
-    localStream
-      .getTracks()
-      .forEach((track) => peer.addTrack(track, localStream));
-    await subscribe();
-
+  peer = createPeer();
+  localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
+  //  await subscribe();
 });
 
 async function connect() {
@@ -667,13 +662,11 @@ async function connect() {
     localStream
       .getTracks()
       .forEach((track) => peer.addTrack(track, localStream));
-      await subscribe();
-  }
-  else {
+    await subscribe();
+  } else {
     //createPeer();
     await subscribe();
   }
-
 }
 
 function handleClose() {
@@ -685,7 +678,7 @@ function handleClose() {
 
 function createPeer() {
   peer = new RTCPeerConnection(configuration);
-  console.log(peer)
+  console.log(peer);
   peer.onicecandidate = handleIceCandidate;
 
   peer.onnegotiationneeded = () => handleNegotiation(peer);
@@ -697,14 +690,12 @@ async function handleNegotiation(peer, type) {
   let offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
 
-  socket.emit("message",
-    {
-      type: "connect",
-      sdp: peer.localDescription,
-      uqid: localUUID,
-      username: username.value,
-    }
-  );
+  socket.emit("message", {
+    type: "connect",
+    sdp: peer.localDescription,
+    uqid: localUUID,
+    username: username.value,
+  });
 }
 
 async function subscribe() {
@@ -720,4 +711,3 @@ async function consumeAll() {
 
   socket.emit("message", payload);
 }
-
