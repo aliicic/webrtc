@@ -88,6 +88,19 @@ io.on("connection", (socket) =>{
   });
 
   socket.emit("message", { type: "welcome", id: peerId });
+
+  socket.on('login', data => {
+      activeUsers.push({
+        name: data,
+        id: socket.id,
+      });
+    socket.broadcast.emit("userList", activeUsers);
+  })
+
+  socket.on("choose-user", (data) => {
+      console.log(data);
+      io.to(data.id).emit("choosed-to-call");
+    });
   
   // socket.on("login", (data) => {
   //       //activeUsers[socket.id] = data;
@@ -108,11 +121,6 @@ io.on("connection", (socket) =>{
        // console.log(x)
         console.log(peers.get(body.uqid), "this is body");
         const peer = createPeer();
-        activeUsers.push({
-          name: body.username,
-          id: body.uqid,
-        });
-        socket.broadcast.emit("userList", activeUsers);
         peers.get(body.uqid).username = body.username;
         peers.get(body.uqid).peer = peer;
         peer.ontrack = (e) => {

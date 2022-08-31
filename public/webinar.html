@@ -1,42 +1,49 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Video Chat Application</title>
-    <link rel="stylesheet" href="css/styles.css" />
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
     <script src="/socket.io/socket.io.min.js"></script>
 </head>
 
 <body>
-    <div class="container">
-        <div class="content-container">
-            <div class="active-users-panel" id="active-user-container">
-                <h3 class="panel-title">کاربران فعال :</h3>
-                <ul id="active-users-list">
+    <input type="text" id="username" placeholder="enter your username" /><button id="connect" disabled>Connect</button>
+    <br />
+    <ul id="user-list">
 
-                </ul>
-            </div>
-            <div class="video-chat-container">
-                <h2 class="talk-info" id="talking-with-info">
-                    نام کاربری را وارد کنید
-                </h2>
-                <button id="loggin" disabled>به اشتراک گذاری ویدیو</button>
-                <button id="fetch"> fetch</button>
-                <button id="kill">قطع کردن ویدیو دوم </button>
-
-                <div class="video-container">
-                    <div style="display: flex;">
-                        <video style="width:300px" autoplay muted class="remote-video" id="remote-video"></video>
-                        <video style="width:300px" autoplay muted class="remote-video" id="remote-video2"></video>
-                    </div>
-                    <video autoplay muted class="local-video" id="local-video"></video>
-                </div>
-            </div>
-        </div>
+    </ul>
+    <div id="remote_videos">
+        <div class="videos-inner"></div>
     </div>
     <script src="js/index.js"></script>
+    <script>
+        // const connectBtn = document.querySelector('#connect');
+        // const remoteContainer = document.querySelector('#remote_videos');
+        // const simple = new SimpleSFUClient();
+
+        // simple.on('onConnected', () => {
+        //     connectBtn.disabled = false;
+        //     connectBtn.addEventListener('click', () => simple.connect())
+        // });
+    </script>
 </body>
 
 </html>
+<style>
+    #user-list {
+        display: flex;
+    }
+
+    #user-list li {
+        list-style: none;
+        background: #3da1fa;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 7px;
+        color: white;
+    }
+</style>

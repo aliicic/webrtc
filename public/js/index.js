@@ -384,7 +384,8 @@ const socket = io("localhost:3000", {
 
 // const socket = io("localhost:3000");
 
-
+const nickname = localStorage.getItem("nickname");
+username.value = nickname;
 window.onload = () => {
   init();
 };
@@ -397,6 +398,7 @@ async function init() {
   socket.on("connect", (e) => {
     console.log("socket connected");
     connectBtn.disabled = false 
+    socket.emit("login", nickname);
   });
   socket.on("disconnect", (e) => {
     console.log("socket desconnected");
@@ -412,12 +414,21 @@ async function init() {
     data.map((item) => {
       liUser = document.createElement('li')
       liUser.innerHTML = item.name
+      liUser.addEventListener("click", () => {
+      if (nickname != "admin") return;
+      let payload = {
+        name: item.name,
+        id: item.id,
+      };
+        socket.emit("choose-user", payload);
+          });
       userList.appendChild(liUser)
     })
 
     console.log(data);
 
   })
+
 }
 
 function recalculateLayout() {
@@ -472,7 +483,6 @@ async function handleRemoteTrack(stream, username) {
 }
 
 async function handleIceCandidate({ candidate }) {
-  console.log("there there");
   if (candidate && candidate.candidate && candidate.candidate.length > 0) {
     let payload = {
       type: "ice",
@@ -523,10 +533,10 @@ async function createConsumeTransport(peer) {
   await consumers.get(consumerId).setLocalDescription(offer);
 
   consumers.get(consumerId).onicecandidate = (e) =>
-  handleConsumerIceCandidate(e, peer.id, consumerId);
+    handleConsumerIceCandidate(e, peer.id, consumerId);
 
   consumers.get(consumerId).ontrack = (e) => {
-   handleRemoteTrack(e.streams[0], peer.username);
+    handleRemoteTrack(e.streams[0], peer.username);
   };
 
   return consumerTransport;
@@ -604,6 +614,33 @@ function removeUser({ id }) {
 
   recalculateLayout();
 }
+socket.on("choosed-to-call",async (data) => {
+    alert('heyyyy')
+    let constraint = {
+      audio: true,
+      video: {
+        mandatory: {
+          width: { min: 320 },
+          height: { min: 180 },
+        },
+        optional: [
+          { width: { max: 1280 } },
+          { frameRate: 30 },
+          { facingMode: "user" },
+        ],
+      },
+    };
+    let stream = await navigator.mediaDevices.getUserMedia(constraint);
+    handleRemoteTrack(stream, username.value);
+    localStream = stream;
+
+    peer = createPeer();
+    localStream
+      .getTracks()
+      .forEach((track) => peer.addTrack(track, localStream));
+    await subscribe();
+
+});
 
 async function connect() {
   //Produce media
@@ -633,7 +670,7 @@ async function connect() {
       await subscribe();
   }
   else {
-    createPeer();
+    //createPeer();
     await subscribe();
   }
 
@@ -648,7 +685,7 @@ function handleClose() {
 
 function createPeer() {
   peer = new RTCPeerConnection(configuration);
-
+  console.log(peer)
   peer.onicecandidate = handleIceCandidate;
 
   peer.onnegotiationneeded = () => handleNegotiation(peer);
