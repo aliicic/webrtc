@@ -81,7 +81,17 @@ io.on("connection", (socket) =>{
     );
   });
 
-  socket.emit("message",{ type: "welcome", id: peerId });
+  socket.emit("message", { type: "welcome", id: peerId });
+  
+  // socket.on("login", (data) => {
+  //       //activeUsers[socket.id] = data;
+  //       //console.log(socket.id)
+      
+
+  //       //console.log(activeUsers);
+  //       io.emit("online-users", activeUsers);
+  //     });
+
   socket.on("message", async function (message) {
     const body = message;
   
@@ -92,6 +102,11 @@ io.on("connection", (socket) =>{
        // console.log(x)
         console.log(peers.get(body.uqid), "this is body");
         const peer = createPeer();
+        activeUsers.push({
+          name: body.username,
+          id: body.uqid,
+        });
+        socket.broadcast.emit("userList", activeUsers);
         peers.get(body.uqid).username = body.username;
         peers.get(body.uqid).peer = peer;
         peer.ontrack = (e) => {
@@ -106,7 +121,7 @@ io.on("connection", (socket) =>{
           type: "answer",
           sdp: peer.localDescription,
         };
-
+        
         socket.emit("message", payload);
         break;
       case "getPeers":

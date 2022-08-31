@@ -368,6 +368,7 @@ let WS_PORT = 3000;
 let username = document.querySelector("#username");
 let connectBtn = document.querySelector("#connect");
 let remoteContainer = document.querySelector("#remote_videos");
+let userList = document.getElementById("user-list")
 connectBtn.addEventListener("click", connect);
 
 let localUUID = null;
@@ -395,7 +396,7 @@ async function init() {
 
   socket.on("connect", (e) => {
     console.log("socket connected");
-    connectBtn.disabled = false
+    connectBtn.disabled = false 
   });
   socket.on("disconnect", (e) => {
     console.log("socket desconnected");
@@ -405,6 +406,18 @@ async function init() {
     console.log("socket message");
     handleMessage(e);
   });
+  let liUser;
+  socket.on("userList", data => {
+    userList.innerHTML = "";
+    data.map((item) => {
+      liUser = document.createElement('li')
+      liUser.innerHTML = item.name
+      userList.appendChild(liUser)
+    })
+
+    console.log(data);
+
+  })
 }
 
 function recalculateLayout() {
@@ -555,7 +568,7 @@ async function handleNewProducer({ id, username }) {
 
 function handleMessage(data) {
   let message = data;
-  console.log(message);
+  //console.log(message);
   switch (message.type) {
     case "welcome":
       localUUID = message.id;
@@ -659,3 +672,4 @@ async function consumeAll() {
 
   socket.emit("message", payload);
 }
+
