@@ -472,6 +472,7 @@ async function handleRemoteTrack(stream, username) {
 }
 
 async function handleIceCandidate({ candidate }) {
+  console.log("there there");
   if (candidate && candidate.candidate && candidate.candidate.length > 0) {
     let payload = {
       type: "ice",
@@ -522,10 +523,10 @@ async function createConsumeTransport(peer) {
   await consumers.get(consumerId).setLocalDescription(offer);
 
   consumers.get(consumerId).onicecandidate = (e) =>
-    handleConsumerIceCandidate(e, peer.id, consumerId);
+  handleConsumerIceCandidate(e, peer.id, consumerId);
 
   consumers.get(consumerId).ontrack = (e) => {
-    handleRemoteTrack(e.streams[0], peer.username);
+   handleRemoteTrack(e.streams[0], peer.username);
   };
 
   return consumerTransport;
@@ -606,27 +607,36 @@ function removeUser({ id }) {
 
 async function connect() {
   //Produce media
-  let constraint = {
-    audio: true,
-    video: {
-      mandatory: {
-        width: { min: 320 },
-        height: { min: 180 },
+  if (username.value == "admin" || username.value == "admin2") {
+    let constraint = {
+      audio: true,
+      video: {
+        mandatory: {
+          width: { min: 320 },
+          height: { min: 180 },
+        },
+        optional: [
+          { width: { max: 1280 } },
+          { frameRate: 30 },
+          { facingMode: "user" },
+        ],
       },
-      optional: [
-        { width: { max: 1280 } },
-        { frameRate: 30 },
-        { facingMode: "user" },
-      ],
-    },
-  };
-  let stream = await navigator.mediaDevices.getUserMedia(constraint);
-  handleRemoteTrack(stream, username.value);
-  localStream = stream;
+    };
+    let stream = await navigator.mediaDevices.getUserMedia(constraint);
+    handleRemoteTrack(stream, username.value);
+    localStream = stream;
 
-  peer = createPeer();
-  localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
-  await subscribe();
+    peer = createPeer();
+    localStream
+      .getTracks()
+      .forEach((track) => peer.addTrack(track, localStream));
+      await subscribe();
+  }
+  else {
+    createPeer();
+    await subscribe();
+  }
+
 }
 
 function handleClose() {
@@ -638,8 +648,9 @@ function handleClose() {
 
 function createPeer() {
   peer = new RTCPeerConnection(configuration);
+
   peer.onicecandidate = handleIceCandidate;
-  //peer.oniceconnectionstatechange = checkPeerConnection;
+
   peer.onnegotiationneeded = () => handleNegotiation(peer);
   return peer;
 }

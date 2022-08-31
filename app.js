@@ -73,6 +73,12 @@ io.on("connection", (socket) =>{
     peers.delete(socket.id);
     consumers.delete(socket.id);
 
+    activeUsers.map((item, index) => {
+        if (item.id === socket.id) activeUsers.splice(index, 1);
+      });
+      //console.log(activeUsers);
+    io.sockets.emit("online-users", activeUsers);
+
     socket.broadcast.emit("message",
        {
         type: "user_left",
