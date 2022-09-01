@@ -394,9 +394,9 @@ async function init() {
 
   socket.on("connect", (e) => {
     console.log("socket connected");
-     console.log( socket.id , 'socket');
+    console.log(socket.id, "socket");
     connectBtn.disabled = false;
-    socket.emit("login", {name :nickname , id : socket.id});
+    socket.emit("login", { name: nickname, id: socket.id });
   });
   socket.on("disconnect", (e) => {
     console.log("socket desconnected");
@@ -408,6 +408,7 @@ async function init() {
   });
   let liUser;
   socket.on("userList", (data) => {
+    console.log('renew user list');
     userList.innerHTML = "";
     data.map((item) => {
       liUser = document.createElement("li");
@@ -556,6 +557,7 @@ async function handlePeers({ peers }) {
   if (peers.length > 0) {
     for (let peer in peers) {
       clients.set(peers[peer].id, peers[peer]);
+      console.log("are ejra mishe");
       await consumeOnce(peers[peer]);
     }
   }
@@ -601,16 +603,19 @@ function handleMessage(data) {
 }
 
 function removeUser({ id }) {
-  let { username, consumerId } = clients.get(id);
-  consumers.delete(consumerId);
-  clients.delete(id);
-  document
-    .querySelector(`#remote_${username}`)
-    .srcObject.getTracks()
-    .forEach((track) => track.stop());
-  document.querySelector(`#user_${username}`).remove();
+  if (clients.get(id)) {
+    console.log(clients.get(id));
+    let { username, consumerId } = clients.get(id);
+    consumers.delete(consumerId);
+    clients.delete(id);
+    document
+      .querySelector(`#remote_${username}`)
+      .srcObject.getTracks()
+      .forEach((track) => track.stop());
+    document.querySelector(`#user_${username}`).remove();
 
-  recalculateLayout();
+    recalculateLayout();
+  }
 }
 socket.on("choosed-to-call", async (data) => {
   // alert('heyyyy')
@@ -704,6 +709,7 @@ async function subscribe() {
 }
 
 async function consumeAll() {
+
   let payload = {
     type: "getPeers",
     uqid: localUUID,

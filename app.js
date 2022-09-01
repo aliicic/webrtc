@@ -72,14 +72,15 @@ io.on("connection", (socket) => {
   socket.id = peerId;
   console.log(socket.id);
   socket.on("disconnect", (event) => {
+    console.log(socket.id, "disconnected");
+    console.log(activeUsers);
     peers.delete(socket.id);
     consumers.delete(socket.id);
-
     activeUsers.map((item, index) => {
         if (item.id === socket.id) activeUsers.splice(index, 1);
       });
       //console.log(activeUsers);
-    io.sockets.emit("online-users", activeUsers);
+    io.emit("userList", activeUsers);
 
     socket.broadcast.emit("message",
        {
@@ -142,6 +143,7 @@ io.on("connection", (socket) => {
         break;
       case "getPeers":
         let uuid = body.uqid;
+        console.log(uuid , "this")
         const list = [];
         peers.forEach((peer, key) => {
           if (key != uuid) {
@@ -157,7 +159,7 @@ io.on("connection", (socket) => {
           type: "peers",
           peers: list,
         };
-
+        console.log(peersPayload, "pauload list");
         socket.emit("message", peersPayload );
         break;
       case "ice":
